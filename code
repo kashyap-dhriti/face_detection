@@ -2,23 +2,25 @@ import cv2
 import os, os.path
 import numpy as np
 
-people = ["", "The Top Model", "cuta Mumma"]
+
+people = ["", "Miss Kashyap", "cuta Mumma"]
 
 def detect_face(img):
 	gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-	face_cascade= cv2.CascadeClassifier('opencv-files/lbpcascade_frontalface.xml')
-	faces= face_cascade.detectMultiScale(gray_img, scaleFactor= 1.2, minNeighbors=5)
+	face_cascade= cv2.CascadeClassifier('C:\\Users\\dhriti\\Downloads\\opencv\\build\\etc\\lbpcascades/lbpcascade_frontalface.xml')
+	faces= face_cascade.detectMultiScale(gray_img, 1.2, 5)
 	if(len(faces) == 0):
 		return None, None
-	x,y,w,h = faces[0];
-	return gray[y:y+w, x:x+h], faces[0]
+	(x,y,w,h) = faces[0];
+	return gray_img[y:y+w, x:x+h], faces[0]
 
-def prepare_training_data(data_path):
+def prepare_training_data():
+	data_path= "/Users/dhriti/Desktop/training_folder"
 	dirs= os.listdir(data_path)
 	faces = []
 	labels= []
 	for dir_name in dirs:
-		if not dir_name.startwith("s"):
+		if not dir_name.startswith("s"):
 			continue;
 		label= int(dir_name.replace("s", ""))
 		sub_dir_path = data_path + "/" + dir_name
@@ -37,40 +39,42 @@ def prepare_training_data(data_path):
 	cv2.destroyAllWindows()
 	cv2.waitKey(1)
 	cv2.destroyAllWindows()
-	return faces, label
+	return faces, labels
 
 def draw_rect(img, rect):
 	x,y,w,h = rect
 	cv2.rectangle(img, (x,y), (x+w, y+h), (0,255,0), 2)
 
 def draw_text(img, text, x,y):
-	cv2.putText(img,text,(x,y),cv2.FONT_HERSHLEY_PLAIN, 1.5,(0,255,0),2)
+	cv2.putText(img,text,(x,y),cv2.FONT_HERSHEY_PLAIN, 1.5,(0,255,0),2)
 
 def predict(test_img):
 	img = test_img.copy()
 	gray_face, orig_face = detect_face(img)
 	label= face_recognizer.predict(gray_face)
-	label_name= people[label]
+	label_name= people[label[0]]
 	draw_rect(img, orig_face)
 	draw_text(img, label_name, orig_face[0], orig_face[1]-5)
 	return img
 
 
 print("training started")
-faces, label= prepare_training_data('C:\Users\dhriti\Desktop\training_data')
+faces, labels= prepare_training_data()
 print("training done")
 
-face_recognizer = cv2.face.createLBPHFaceREcognizer()
-face_recognizer.train(faces,np,array(labels))
+face_recognizer = cv2.face.LBPHFaceRecognizer_create()
+face_recognizer.train(faces, np.array(labels))
 
 print("start testing")
+
 cap = cv2.VideoCapture(0)
-while 1:
-	ret_val, img = cap.read()
-	predicted_img = predict(im)
+ret_val, img = cap.read()
+while ret_val:
+	predicted_img = predict(img)
 	print("prediction completed")
 
 	cv2.imshow('Output Image', predicted_img)
+	ret_val= 0;
 	cv2.waitKey(0)
 	cv2.destroyAllWindows()
 
