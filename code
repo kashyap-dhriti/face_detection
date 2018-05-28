@@ -1,6 +1,7 @@
 import cv2
 import os, os.path
 import numpy as np
+import attendance
 
 
 people = ["", "Miss Kashyap", "cuta Mumma"]
@@ -48,11 +49,31 @@ def draw_rect(img, rect):
 def draw_text(img, text, x,y):
 	cv2.putText(img,text,(x,y),cv2.FONT_HERSHEY_PLAIN, 1.5,(0,255,0),2)
 
+
 def predict(test_img):
 	img = test_img.copy()
 	gray_face, orig_face = detect_face(img)
-	label= face_recognizer.predict(gray_face)
+	try:
+		label= face_recognizer.predict(gray_face)
+	except:
+		print('Face Not Found')
+		label_name= "Face Not Found/Recognized"
+		draw_text(img, label_name, orig_face[0], orig_face[1]-5)
+		return img
 	label_name= people[label[0]]
+	for i in attendance.collect.find({"id" : label[0]}):
+		print(i)
+	print("increasing...")
+	res= attendance.collect.update(
+		{"id" : label[0]},
+		{
+			"$inc":{
+					 "current" : 1
+					}
+		})
+	print("increased.")
+	for i in attendance.collect.find({"id" : label[0]}):
+		print(i)
 	draw_rect(img, orig_face)
 	draw_text(img, label_name, orig_face[0], orig_face[1]-5)
 	return img
