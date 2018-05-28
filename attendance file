@@ -1,0 +1,19 @@
+from pymongo import MongoClient
+
+try:
+	client= MongoClient('localhost', 27017)
+	print('database connected')
+except:
+	print('error in connection')
+
+db= client.college
+collect= db.student;
+ 
+s= [
+	{'id' : 1, 'name' : 'kashyap', 'current' : 1},
+	{'id' : 2, 'name' : 'mummy', 'current' : 5}]
+
+collect.insert_many(s);
+collect.system.indexes.find()
+#collection.create_index(, pymongo.ASCENDING)], unique=True)
+
